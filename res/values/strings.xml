@@ -3,6 +3,10 @@
     <string name="app_name">Crazyflie Client</string>
     <string name="title_activity_main">Crazyflie Client</string>
 
+    <!-- Twitch channel dialog box -->
+    <string name="twitch_dialog_name">\t\tChannel Name</string>
+    <string name="twitch_dialog_message">Enter channel or leave blank for default</string>
+
     <!-- Menu -->
     <string name="menu_connect">Connect</string>
     <string name="menu_disconnect">Disconnect</string>

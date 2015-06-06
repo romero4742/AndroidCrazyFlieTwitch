@@ -41,14 +41,34 @@
             android:src="@drawable/ic_action_settings_light" />
     </LinearLayout>
 
-    <com.MobileAnarchy.Android.Widgets.Joystick.DualJoystickView
-        android:id="@+id/joysticks"
+    <!-- Added a frame layout and placed a TwitchView over JoyStick view -->
+    <FrameLayout
+        android:id="@+id/dynamicContainer"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_alignParentBottom="true"
-        android:gravity="bottom"
-        android:layout_marginTop="1dp"
         android:layout_below="@+id/linearLayout1">
-    </com.MobileAnarchy.Android.Widgets.Joystick.DualJoystickView>
+        <com.MobileAnarchy.Android.Widgets.Joystick.DualJoystickView
+            android:id="@+id/joysticks"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="bottom"
+            android:layout_marginTop="1dp"
+            >
+        </com.MobileAnarchy.Android.Widgets.Joystick.DualJoystickView>
+
+        <ImageButton
+            android:id="@+id/cameraIcon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right"
+            android:layout_marginRight="9dp"
+            android:layout_marginTop="2dp"
+            android:background="@drawable/custom_button"
+            android:src="@drawable/video_camera_icon"
+            android:clickable="true"
+            android:onClick="initializeTwitch"
+            />
+    </FrameLayout>
 
 </RelativeLayout>

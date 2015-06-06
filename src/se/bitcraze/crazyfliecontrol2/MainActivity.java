@@ -30,6 +30,7 @@ package se.bitcraze.crazyfliecontrol2;
 import java.io.IOException;
 import java.util.Locale;
 
+import se.bitcraze.CS408.TwitchView;
 import se.bitcraze.crazyfliecontrol.controller.Controls;
 import se.bitcraze.crazyfliecontrol.controller.GamepadController;
 import se.bitcraze.crazyfliecontrol.controller.GyroscopeController;
@@ -43,8 +44,10 @@ import se.bitcraze.crazyflielib.Link;
 import se.bitcraze.crazyflielib.crtp.CommanderPacket;
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -53,17 +56,23 @@ import android.content.pm.PackageManager;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 import android.media.AudioManager;
+import android.media.Image;
 import android.media.SoundPool;
 import android.media.SoundPool.OnLoadCompleteListener;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.preference.Preference;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
@@ -99,12 +108,19 @@ public class MainActivity extends Activity {
 
     private ImageButton mToggleConnectButton;
 
+    //CS 408 variables
+    private TwitchView mTwitchView;
+    private boolean mTwitchViewOpen = false;
+    private ImageButton mCameraButton;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         setDefaultPreferenceValues();
+
+        //mTwitchView = (TwitchView)findViewById(R.id.twitchView);
 
         mControls = new Controls(this, mPreferences);
         mControls.setDefaultPreferenceValues(getResources());
@@ -129,7 +145,62 @@ public class MainActivity extends Activity {
         filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
         registerReceiver(mUsbReceiver, filter);
 
+        mCameraButton = (ImageButton)findViewById(R.id.cameraIcon);
+
         initializeSounds();
+    }
+
+    /**
+     * function created for cs408, creates twitch view and displays it
+     * @param view
+     */
+    public void initializeTwitch(View view){
+        final View root = ((Activity)this).getWindow().getDecorView().findViewById(android.R.id.content);
+        if(!mTwitchViewOpen){
+            AlertDialog.Builder alert = new AlertDialog.Builder(this);
+            alert.setTitle(R.string.twitch_dialog_name);
+            alert.setMessage(R.string.twitch_dialog_message);
+            final EditText input = new EditText(this);
+            alert.setView(input);
+            alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    String name = input.getText().toString();
+                    buildTwitch(root, name);
+                }
+            });
+            alert.show();
+
+        } else {
+            mTwitchView.removeTwitchView(root);
+            resizeDualJoysticks(.75f);
+            mCameraButton.setImageResource(R.drawable.video_camera_icon);
+            mTwitchViewOpen = false;
+        }
+    }
+
+    private void buildTwitch(View root, String channelName){
+        mTwitchView =  new TwitchView(this);
+        mTwitchView.setChannelName(channelName);
+        mTwitchView.displayTwitchView(root);
+        float playerPercentWidth = mTwitchView.getPlayerWidth();
+        resizeDualJoysticks(1-playerPercentWidth);
+        mTwitchView.start();
+        mCameraButton.setImageResource(R.drawable.video_camera_icon_on);
+        mTwitchViewOpen = true;
+    }
+
+    /**
+     * used when player is created, it resizes joysticks to fill the rest of the screen based
+     * on what the percent is of the player
+     * @param percent
+     */
+    private void resizeDualJoysticks(float percent){
+        percent *= 100;
+        mPreferences.edit().putString(PreferencesActivity.KEY_PREF_JOYSTICK_SIZE,String.valueOf(percent)).commit();
+        mDualJoystickView.setPreferences(mPreferences);
+        mDualJoystickView.requestLayout();
+
     }
 
     private void initializeSounds() {
@@ -222,6 +293,9 @@ public class MainActivity extends Activity {
         if (mLink != null) {
             linkDisconnect();
         }
+        if( mTwitchViewOpen){
+            initializeTwitch(null);//destroys and removes
+        }
     }
 
     @Override
@@ -229,6 +303,9 @@ public class MainActivity extends Activity {
         unregisterReceiver(mUsbReceiver);
         mSoundPool.release();
         mSoundPool = null;
+        if(mTwitchViewOpen) {
+            initializeTwitch(null); //destroys and removes
+        }
         super.onDestroy();
     }
 

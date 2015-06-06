@@ -668,4 +668,10 @@ public class PreferencesActivity extends PreferenceActivity {
         return Math.round(Math.sqrt(x + y));
     }
 
+    //function added for CS408, get the width of the screen
+    public static double getScreenWidthIndp(Context context){
+        DisplayMetrics dm = context.getResources().getDisplayMetrics();
+        return dm.widthPixels / dm.density;
+    }
+
 }
